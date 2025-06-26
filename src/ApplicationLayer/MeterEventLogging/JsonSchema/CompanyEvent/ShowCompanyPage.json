@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ShowCompanyPage",
+  "title": "ShowCompanyPage",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "../CompanyEventAbstract.json"
+    }
+  ],
+  "properties": {
+    "showCompanyPage": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "required": ["showCompanyPage"]
+}

@@ -1,0 +1,138 @@
+<?php
+
+namespace App\Tests\ConsoleCommand;
+
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
+
+class ExportEventCommandTest extends KernelTestCase
+{
+    private $filesystem;
+    private $rootDir;
+    private $lastDateForImport;
+    private $files;
+
+    public function setUp(): void
+    {
+        $container = static::getContainer();
+
+        $this->rootDir = $container->getParameter('stats_meter.logs_dir');
+
+        $this->lastDateForImport = (new \DateTime('now'))->sub(new \DateInterval('P1D'))->format('Y-m-d');
+        $this->files = [
+            'showCompanyCardInList.log' => 'some text content',
+            'showCompanyPage.log' => 'some text content',
+            'showPhone.log' => 'some text content',
+            'tgbClick.log' => 'some text content',
+            'tgbView.log' => 'some text content',
+            'visitSiteFromCompanyCard.log' => 'some text content',
+            'visitSiteFromCompanyPage.log' => 'some text content',
+        ];
+        $structure = [
+            '2022-01-01' => [
+                'tgbView.log' => 'some text content',
+                'tgbClick.log' => 'Some more text content',
+            ],
+            '2022-01-02' => [
+                'tgbView.log' => 'some text content',
+                'tgbClick.log' => 'Some more text content',
+            ],
+            $this->lastDateForImport => $this->files,
+        ];
+
+        $this->filesystem = new Filesystem();
+
+        if ($this->filesystem->exists($this->rootDir)) {
+            $this->filesystem->remove([$this->rootDir]);
+        }
+
+        $this->filesystem->mkdir($this->rootDir);
+        foreach ($structure as $dirName => $files) {
+            $this->filesystem->mkdir("$this->rootDir/$dirName");
+            foreach ($files as $fileName => $content) {
+                $this->filesystem->appendToFile("$this->rootDir/$dirName/$fileName", $content);
+            }
+        }
+    }
+
+    public function testExecuteCommandWithoutOptions()
+    {
+        $kernel = self::bootKernel();
+
+        $mock = \Mockery::mock("alias:".Process::class);
+        foreach ($this->files as $fileName => $content) {
+            $fullPath = "{$this->rootDir}/{$this->lastDateForImport}/$fileName";
+            $shellCommandForTgbView = "cat $fullPath | clickhouse-client -h 127.0.0.1 --port 9000 --query=\"INSERT INTO CompanyEvent FORMAT JSONEachRow\"";
+            $mock
+                ->shouldReceive('fromShellCommandline')
+                ->once()
+                ->withArgs([$shellCommandForTgbView])
+                ->andReturn($mock);
+        }
+
+        $mock
+            ->shouldReceive('setTimeout')
+            ->withArgs([3600])
+            ->andReturn($mock);
+        $mock
+            ->shouldReceive('mustRun');
+        $mock
+            ->shouldReceive('getOutput')
+            ->andReturn('success');
+
+        $application = new Application($kernel);
+        $command = $application->find('app:meter-event:export');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([]);
+
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    public function testExecuteWithOptionsDateType()
+    {
+        $kernel = self::bootKernel();
+        $application = new Application($kernel);
+        $command = $application->find('app:meter-event:export');
+        $date = "2022-01-02";
+        $eventType = "tgbClick";
+        $filePath = "{$this->rootDir}/$date/$eventType.log";
+        $shellCommandForTgbClick = "cat {$filePath} | clickhouse-client -h 127.0.0.1 --port 9000 --query=\"INSERT INTO CompanyEvent FORMAT JSONEachRow\"";
+
+        $mock = \Mockery::mock("alias:".Process ::class);
+        $mock
+            ->shouldReceive('fromShellCommandline')
+            ->once()->ordered()
+            ->withArgs([$shellCommandForTgbClick])
+            ->andReturn($mock);
+        $mock
+            ->shouldReceive('setTimeout')
+            ->withArgs([3600])
+            ->andReturn($mock);
+        $mock
+            ->shouldReceive('mustRun');
+        $mock
+            ->shouldReceive('getOutput')->andReturn('success');
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+                '--date' => $date,
+                '--type' => $eventType,
+                '--remove-source' => true,
+            ]
+        );
+
+        $this->assertFalse($this->filesystem->exists($filePath), "$filePath was removed");
+        $this->assertFalse($this->filesystem->exists($filePath), "$filePath was removed");
+        $this->assertEquals(0, $commandTester->getStatusCode());
+    }
+
+    protected function tearDown(): void
+    {
+        $this->filesystem->remove([$this->rootDir]);
+        \Mockery::close();
+        parent::tearDown(); // TODO: Change the autogenerated stub
+    }
+}

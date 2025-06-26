@@ -1,0 +1,29 @@
+doctrine:
+    dbal:
+        url: '%env(resolve:DATABASE_URL)%'
+        #        connections:
+        #            clickhouse:
+        #                host: localhost
+        #                port: 8123
+        #                user: default
+        #                password: ""
+        #                dbname: default
+        #                driver_class: FOD\DBALClickHouse\Driver
+        #                wrapper_class: FOD\DBALClickHouse\Connection
+        #                options:
+        #                    enable_http_compression: 1
+        #                    max_execution_time: 60
+        # IMPORTANT: You MUST configure your server version,
+        # either here or in the DATABASE_URL env var (see .env file)
+        #server_version: '13'
+    orm:
+        auto_generate_proxy_classes: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        auto_mapping: true
+        mappings:
+            App:
+                is_bundle: false
+                type: annotation
+                dir: '%kernel.project_dir%/src/Entity'
+                prefix: 'App\Entity'
+                alias: App

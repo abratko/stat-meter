@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "CompanyEventAbstract",
+  "title": "CompanyEventAbstract",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "EventAbstract.json"
+    }
+  ],
+  "properties": {
+    "companyId": {
+      "type": "integer"
+    }
+  },
+  "required": ["companyId"]
+}

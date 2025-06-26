@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "TgbView",
+  "title": "TgbView",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "TgbEventAbstract.json"
+    }
+  ],
+  "properties": {
+    "tgbView": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "required": ["tgbView"]
+}

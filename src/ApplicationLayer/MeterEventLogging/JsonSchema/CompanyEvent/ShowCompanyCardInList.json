@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ShowCompanyCardInList",
+  "title": "ShowCompanyCardInList",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "../CompanyEventAbstract.json"
+    }
+  ],
+  "properties": {
+    "showCompanyCardInList": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "listType": {
+      "type": "string",
+      "enum": ["rubric", "search", "map"]
+    },
+    "rubricId" : {
+      "type": "string",
+      "pattern": "^\\d+$"
+    }
+  },
+  "required": ["showCompanyCardInList", "listType"]
+}

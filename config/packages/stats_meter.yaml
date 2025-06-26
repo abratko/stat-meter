@@ -1,0 +1,107 @@
+parameters:
+    stats_meter.logs_dir: '%kernel.logs_dir%/MeterEvent'
+    stats_meter.json_schema_dir: '%kernel.project_dir%/src/ApplicationLayer/MeterEventLogging/JsonSchema'
+
+services:
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    App\ApplicationLayer\MeterEventLogging\EventLogger:
+        arguments:
+            - '%stats_meter.logs_dir%'
+
+    app.stats_meter.event_handler.tgb_click:
+        class: App\ApplicationLayer\MeterEventLogging\CommandHandler
+        arguments:
+            - '%stats_meter.json_schema_dir%/CompanyEvent/TgbClick.json'
+        tags:
+            - { name: 'app.stats_meter.event_handler', key: 'tgbClick' }
+
+    app.stats_meter.event_handler.tgb_view:
+        class: App\ApplicationLayer\MeterEventLogging\CommandHandler
+        arguments:
+            - '%stats_meter.json_schema_dir%/CompanyEvent/TgbView.json'
+        tags:
+            - { name: 'app.stats_meter.event_handler', key: 'tgbView' }
+
+    app.stats_meter.event_handler.show_phone:
+        class: App\ApplicationLayer\MeterEventLogging\CommandHandler
+        arguments:
+            - '%stats_meter.json_schema_dir%/CompanyEvent/ShowPhone.json'
+        tags:
+            - { name: 'app.stats_meter.event_handler', key: 'showPhone' }
+
+    app.stats_meter.event_handler.show_site:
+        class: App\ApplicationLayer\MeterEventLogging\CommandHandler
+        arguments:
+            - '%stats_meter.json_schema_dir%/CompanyEvent/ShowSite.json'
+        tags:
+            - { name: 'app.stats_meter.event_handler', key: 'showSite' }
+
+    app.stats_meter.event_handler.show_company_page:
+        class: App\ApplicationLayer\MeterEventLogging\CommandHandler
+        arguments:
+            - '%stats_meter.json_schema_dir%/CompanyEvent/ShowCompanyPage.json'
+        tags:
+            - { name: 'app.stats_meter.event_handler', key: 'showCompanyPage' }
+
+    app.stats_meter.event_handler.visit_site_from_company_page:
+        class: App\ApplicationLayer\MeterEventLogging\CommandHandler
+        arguments:
+            - '%stats_meter.json_schema_dir%/CompanyEvent/VisitSiteFromCompanyPage.json'
+        tags:
+            - { name: 'app.stats_meter.event_handler', key: 'visitSiteFromCompanyPage' }
+
+    app.stats_meter.event_handler.visit_site_from_company_card:
+        class: App\ApplicationLayer\MeterEventLogging\CommandHandler
+        arguments:
+            - '%stats_meter.json_schema_dir%/CompanyEvent/VisitSiteFromCompanyCard.json'
+        tags:
+            - { name: 'app.stats_meter.event_handler', key: 'visitSiteFromCompanyCard' }
+
+    app:meter-event:export:handler:
+        class: App\ApplicationLayer\ExportEventIntoClickHouse\CommandHandler
+        arguments:
+            - '%clickhouse.command%'
+        tags:
+            - { name: 'app.stats_meter.event_handler', key: 'app:meter-event:export:handler' }
+
+    App\PresentationLayer\MeterEventLogging\CommandArgsFactory: ~
+    App\ApplicationLayer\AbstractCommand\Json\JsonSchemaValidator: ~
+
+    App\PresentationLayer\MeterEventLogging\ApiController:
+        arguments:
+          - !tagged_locator { tag: 'app.stats_meter.event_handler', index_by: 'key' }
+        tags: ['controller.service_arguments']
+
+    # Console command config
+    App\PresentationLayer\ConsoleCommand\ExportEvent\CommandArgsFactory: ~
+
+    App\PresentationLayer\ConsoleCommand\ExportEvent\ExportEventCommand:
+        arguments:
+            - !tagged_locator { tag: 'app.stats_meter.event_handler', index_by: 'key' }
+
+    # Batch
+
+    ## Api controller
+    App\PresentationLayer\MeterEventLoggingBatch\CommandArgsFactory: ~
+    App\PresentationLayer\MeterEventLoggingBatch\ApiController: ~
+
+    ## CommandHandler
+    App\ApplicationLayer\MeterEventLoggingBatch\EventBatchValidator:
+        arguments:
+            - tgbView: '%stats_meter.json_schema_dir%/CompanyEvent/TgbView.json'
+              tgbClick: '%stats_meter.json_schema_dir%/CompanyEvent/TgbClick.json'
+              showSite: '%stats_meter.json_schema_dir%/CompanyEvent/ShowSite.json'
+              showPhone: '%stats_meter.json_schema_dir%/CompanyEvent/ShowPhone.json'
+              showCompanyPage: '%stats_meter.json_schema_dir%/CompanyEvent/ShowCompanyPage.json'
+              visitSiteFromCompanyCard: '%stats_meter.json_schema_dir%/CompanyEvent/VisitSiteFromCompanyCard.json'
+              visitSiteFromCompanyPage: '%stats_meter.json_schema_dir%/CompanyEvent/VisitSiteFromCompanyPage.json'
+              showCompanyCardInList: '%stats_meter.json_schema_dir%/CompanyEvent/ShowCompanyCardInList.json'
+
+    App\ApplicationLayer\MeterEventLoggingBatch\EventLoggerBatchFactory:
+        arguments:
+            - '%stats_meter.logs_dir%'
+
+    App\ApplicationLayer\MeterEventLoggingBatch\CommandHandler: ~

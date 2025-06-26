@@ -1,0 +1,10 @@
+monolog:
+    channels: [meter_event]
+    handlers:
+        meter_event:
+            level: info
+            type: stream
+            path: '%kernel.logs_dir%/meter_event.log'
+            channels: [ meter_event ]
+            formatter: monolog.formatter.json
+

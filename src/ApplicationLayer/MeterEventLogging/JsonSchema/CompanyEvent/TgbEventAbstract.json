@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "VisitRubricEvent",
+  "title": "VisitRubricEvent",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "../CompanyEventAbstract.json"
+    }
+  ],
+  "properties": {
+    "tgbIsBanner": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "tgbId": {
+      "type": "integer"
+    },
+    "tgbPosition": {
+      "type": "string"
+    },
+    "tgbTargetUrl": {
+      "type": "string"
+    }
+  },
+  "required": [ "tgbId", "tgbIsBanner", "tgbPosition", "tgbTargetUrl" ]
+}

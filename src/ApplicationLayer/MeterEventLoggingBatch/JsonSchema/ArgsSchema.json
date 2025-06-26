@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ArgsSchema",
+  "title": "ArgsSchema",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{1}[\\d\\-\\*]+$"
+    },
+    "type": {
+      "type": "string"
+    },
+    "destinationTable": {
+      "type": "string"
+    },
+    "shouldRemoveSourceFile": {
+      "type": "boolean"
+    }
+  }
+}

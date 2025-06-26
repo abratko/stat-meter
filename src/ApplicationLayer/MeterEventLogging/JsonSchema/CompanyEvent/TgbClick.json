@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "VisitRubricEvent",
+  "title": "VisitRubricEvent",
+  "type": "object",
+  "minProperties": 12,
+  "allOf": [
+    {
+      "$ref": "TgbEventAbstract.json"
+    }
+  ],
+  "properties": {
+    "tgbClick": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "required": ["tgbClick"]
+}
